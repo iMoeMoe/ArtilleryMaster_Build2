@@ -1,100 +1,64 @@
-﻿# CMakeList.txt : Top-level CMake project file, do global configuration
-# and include sub-projects here.
-#
-cmake_minimum_required (VERSION 3.8)
+﻿cmake_minimum_required(VERSION 3.10) # Specifies the minimum CMake version
+project(ArtilleryMaster_Build2 LANGUAGES CXX) # Defines the project name and language
 
-# Enable Hot Reload for MSVC compilers if supported.
-if (POLICY CMP0141)
-  cmake_policy(SET CMP0141 NEW)
-  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
-endif()
-
-project("ArtilleryMaster_Build2")
-
-# Remove duplicate or unnecessary include directories and ensure correct order
-include_directories(
-    ${CMAKE_SOURCE_DIR}/item/SFML/include
-    ${CMAKE_SOURCE_DIR}/item/imgui
-    ${CMAKE_SOURCE_DIR}/item/imgui/imgui-sfml
-    ${CMAKE_SOURCE_DIR}/item/imgui/libraries/include
-)
-
-# Ensure the linker can find the SFML and ImGui-SFML libraries
-link_directories(
-    ${CMAKE_SOURCE_DIR}/item/SFML/lib
-    ${CMAKE_SOURCE_DIR}/item/imgui/libraries/lib
-)
-
-add_executable(ArtilleryMaster_Build2
-    ArtilleryMaster_Build2/ArtilleryMaster_Build2.cpp
-    # Add other source files here if needed
-)
-
-# Link against SFML and ImGui-SFML libraries (adjust names if needed)
-target_link_libraries(ArtilleryMaster_Build2
-    sfml-graphics
-    sfml-window
-    sfml-system
-    ImGui-SFML
-)
-
-# Remove or correct the previous target_include_directories to avoid confusion
-# and ensure all includes are set above
-# target_include_directories(ArtilleryMaster_Build2 PRIVATE
-#     ${CMAKE_SOURCE_DIR}/item/imgui-sfml/include
-# )
-cmake_minimum_required(VERSION 3.10)
-project(ArtilleryMaster_Build2)
-
+# Set the C++ standard (e.g., C++17)
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON) # Good practice
-
-set(SFML_DIR "/path/to/sfml")
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF) # Optional: disable compiler-specific extensions
 
 # --- SFML ---
-# Ensure SFML is installed and findable by CMake.
-# If it's not in a standard path, you might need to tell CMake where it is, e.g.,
-# by setting CMAKE_PREFIX_PATH when you run cmake:
-# cmake -DCMAKE_PREFIX_PATH=/actual/path/to/sfml ..
+# Find the SFML package.
+# This requires SFML to be installed in a location CMake can find.
+# You might need to set CMAKE_PREFIX_PATH or SFML_DIR if it's not found automatically.
+# Example: cmake -D SFML_DIR=/path/to/sfml/lib/cmake/SFML ..
+find_package(SFML 2.5 COMPONENTS graphics window system REQUIRED)
+# SFML_INCLUDE_DIRS and SFML_LIBRARIES will be populated by find_package
 
-# --- ImGui ---
-# This will build the imgui library from the submodule
-# and create a target named 'imgui' (or 'ImGui' depending on its CMakeLists)
+# --- Dear ImGui Submodule ---
+# Add the imgui submodule directory. This will process its CMakeLists.txt.
+# This assumes the 'imgui' directory is a submodule in your project root.
+# It should create a target, typically named 'imgui'.
 add_subdirectory(imgui)
 
-# --- ImGui-SFML ---
-# This will build the imgui-sfml library from the submodule
-# and create a target, likely named 'ImGui-SFML' or 'imgui-sfml'
-add_subdirectory(imgui-sfml) # <<< ADD THIS LINE
+# --- ImGui-SFML Submodule ---
+# Add the imgui-sfml submodule directory. This will process its CMakeLists.txt.
+# This assumes the 'imgui-sfml' directory is a submodule in your project root.
+# It should create a target, typically named 'ImGui-SFML'.
+add_subdirectory(imgui-sfml)
 
 # --- Your Executable ---
+# Define your main executable and list its source files.
+# This assumes ArtilleryMaster_Build2.cpp is in the same directory as this CMakeLists.txt.
 add_executable(ArtilleryMaster_Build2 ArtilleryMaster_Build2.cpp)
 
 # --- Include Directories ---
+# Specify include directories needed for your executable.
 target_include_directories(ArtilleryMaster_Build2 PUBLIC
-    ${SFML_INCLUDE_DIRS}  # Provided by find_package(SFML)
-    imgui                 # For #include "imgui.h" (finds imgui/imgui.h)
-    imgui-sfml            # For #include "imgui-SFML.h" (finds imgui-sfml/imgui-SFML.h)
-                          # Note: Linking the ImGui-SFML target below might make this redundant
-                          # as it often exports its include directories. But being explicit doesn't hurt.
+    ${CMAKE_CURRENT_SOURCE_DIR} # Include the current directory (optional, good practice)
+    ${SFML_INCLUDE_DIRS}        # For SFML headers (e.g., <SFML/Graphics.hpp>)
+    # The following might be automatically handled by linking against the imgui and ImGui-SFML
+    # targets if their CMakeLists.txt are set up to export include directories (INTERFACE_INCLUDE_DIRECTORIES).
+    # However, explicitly adding them can be safer or needed for older/different setups.
+    imgui                       # Allows #include "imgui.h" (searches in 'imgui' folder)
+    imgui-sfml                  # Allows #include "imgui-SFML.h" (searches in 'imgui-sfml' folder)
 )
 
 # --- Link Libraries ---
+# Link your executable against the libraries it depends on.
 target_link_libraries(ArtilleryMaster_Build2 PRIVATE
     # SFML libraries (e.g., sfml-graphics, sfml-window, sfml-system)
+    # The specific target names like sfml-graphics are often wrapped by ${SFML_LIBRARIES}
     ${SFML_LIBRARIES}
 
-    # ImGui library target (usually 'imgui' or 'ImGui' - check imgui/CMakeLists.txt if unsure)
-    imgui # Assuming the target defined in imgui/CMakeLists.txt is 'imgui'
+    # ImGui library target (usually 'imgui', defined in imgui/CMakeLists.txt)
+    imgui
 
-    # ImGui-SFML library target (usually 'ImGui-SFML' - check imgui-sfml/CMakeLists.txt if unsure)
-    ImGui-SFML # <<< ADD THIS LINE (or 'imgui-sfml' if that's the target name)
-               # This is important. The official imgui-sfml CMakeLists.txt creates a target named 'ImGui-SFML'.
+    # ImGui-SFML library target (usually 'ImGui-SFML', defined in imgui-sfml/CMakeLists.txt)
+    ImGui-SFML
 )
 
-# If you are using the ImGui-SFML from https://github.com/eliasdaler/imgui-sfml
-# its CMakeLists.txt should create an INTERFACE library called 'ImGui-SFML'.
-# Linking against an INTERFACE library automatically handles include directories and dependencies.
-# In that case, explicitly adding 'imgui-sfml' to target_include_directories might not be strictly
-# necessary if 'ImGui-SFML' correctly propagates its include directory, but it's safer.
-# The target 'imgui' from the official Dear ImGui submodule also correctly propagates its include dir.
+# --- Optional: For Visual Studio, set this project as the default startup project ---
+# (This usually happens automatically if there's only one executable)
+# if(MSVC)
+#     set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ArtilleryMaster_Build2)
+# endif()
