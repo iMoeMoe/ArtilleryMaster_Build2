@@ -10,8 +10,8 @@
       "cacheVariables": {
         "CMAKE_C_COMPILER": "cl.exe",
         "CMAKE_CXX_COMPILER": "cl.exe",
-        // --- Update SFML_DIR to point within your project ---
-        "SFML_DIR": "${sourceDir}/SFML/lib/cmake/SFML" // <--- VERIFY THIS PATH STRUCTURE
+        // --- THIS IS THE CRUCIAL CHANGE ---
+        "SFML_DIR": "${sourceDir}/ArtilleryMaster_Build2/item/SFML/lib/cmake/SFML"
       },
       "condition": {
         "type": "equals",
@@ -19,8 +19,8 @@
         "rhs": "Windows"
       }
     },
-    // ... (rest of your presets, ensuring x64-release and x86-release inherit from windows-base
-    //      and have the architecture set, as discussed previously) ...
+    // ... rest of your presets (x64-debug, x64-release, etc.) ...
+    // Ensure they inherit correctly from "windows-base"
     {
       "name": "x64-debug",
       "displayName": "x64 Debug",
